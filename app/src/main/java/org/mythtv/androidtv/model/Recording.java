@@ -2,12 +2,13 @@ package org.mythtv.androidtv.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Created by dmfrey on 11/2/14.
  */
-public class Recording {
+public class Recording implements Serializable {
 
     @SerializedName( "RecordId" )
     private String id;

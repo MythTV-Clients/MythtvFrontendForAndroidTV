@@ -2,10 +2,12 @@ package org.mythtv.androidtv.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
+
 /**
  * Created by dmfrey on 11/2/14.
  */
-public class ArtworkInfo {
+public class ArtworkInfo implements Serializable {
 
     @SerializedName( "URL" )
     private String url;

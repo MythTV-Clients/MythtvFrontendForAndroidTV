@@ -2,12 +2,14 @@ package org.mythtv.androidtv;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -20,6 +22,13 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.VideoView;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.mythtv.androidtv.model.Program;
+import org.mythtv.androidtv.settings.SettingsActivity;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -51,11 +60,13 @@ public class PlayerActivity extends Activity {
     private Timer mControllersTimer;
     private PlaybackState mPlaybackState;
     private final Handler mHandler = new Handler();
-    private Movie mSelectedMovie;
+    private Program mSelectedProgram;
     private boolean mShouldStartPlayback;
     private boolean mControlersVisible;
     private int mDuration;
     private DisplayMetrics mMetrics;
+
+    private String mBackendUrl;
 
     /*
      * List of various states that we can be in
@@ -67,6 +78,10 @@ public class PlayerActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences( this );
+        mBackendUrl = sharedPref.getString( SettingsActivity.KEY_PREF_BACKEND_URL, "" );
+
         setContentView(R.layout.activity_player);
 
         mMetrics = new DisplayMetrics();
@@ -81,11 +96,14 @@ public class PlayerActivity extends Activity {
 
     private void startVideoPlayer() {
         Bundle b = getIntent().getExtras();
-        mSelectedMovie = (Movie) getIntent().getSerializableExtra(getResources().getString(R.string.movie));
+        mSelectedProgram = (Program) getIntent().getSerializableExtra(getResources().getString(R.string.program ));
         if (null != b) {
             mShouldStartPlayback = b.getBoolean(getResources().getString(R.string.should_start));
             int startPosition = b.getInt(getResources().getString(R.string.start_position), 0);
-            mVideoView.setVideoPath(mSelectedMovie.getVideoUrl());
+            DateTime start = new DateTime( mSelectedProgram.getRecording().getStart() ).withZone( DateTimeZone.UTC );
+            String url = mBackendUrl + "/Content/GetRecording?ChanId=" + mSelectedProgram.getChannel().getId() + "&StartTime=" + start.toString( "yyyy-MM-dd'T'HH:mm:ss" );
+            mVideoView.setVideoPath(url);
+
             if (mShouldStartPlayback) {
                 mPlaybackState = PlaybackState.PLAYING;
                 updatePlayButton(mPlaybackState);
@@ -235,7 +253,7 @@ public class PlayerActivity extends Activity {
                 @Override
                 public void run() {
                     Intent intent = new Intent(PlayerActivity.this, DetailsActivity.class);
-                    intent.putExtra(getResources().getString(R.string.movie), mSelectedMovie);
+                    intent.putExtra(getResources().getString(R.string.program), mSelectedProgram);
                     startActivity(intent);
                 }
             });

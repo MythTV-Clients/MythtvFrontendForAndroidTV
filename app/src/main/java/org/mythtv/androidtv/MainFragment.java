@@ -1,6 +1,7 @@
 package org.mythtv.androidtv;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -10,10 +11,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
@@ -22,8 +25,10 @@ import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnItemClickedListener;
 import android.support.v17.leanback.widget.OnItemSelectedListener;
+import android.support.v17.leanback.widget.OnItemViewSelectedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
+import android.support.v17.leanback.widget.RowPresenter;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -37,13 +42,12 @@ import com.squareup.picasso.Target;
 
 import org.mythtv.androidtv.model.Program;
 import org.mythtv.androidtv.service.DvrServiceHelper;
+import org.mythtv.androidtv.settings.SettingsActivity;
 
 
 public class MainFragment extends BrowseFragment {
 
     private static final String TAG = "MainFragment";
-
-    public static final String BASE_URL = "http://192.168.10.200:6544";
 
     private ArrayObjectAdapter mRowsAdapter;
     private Drawable mDefaultBackground;
@@ -59,12 +63,17 @@ public class MainFragment extends BrowseFragment {
 
     private ProgramLoaderCompleteReceiver mProgramLoaderCompleteReceiver = new ProgramLoaderCompleteReceiver();
 
+    private String mBackendUrl;
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         Log.i(TAG, "onCreate");
         super.onActivityCreated(savedInstanceState);
 
-        mDvrServiceHelper = new DvrServiceHelper( getActivity(), BASE_URL );
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences( getActivity() );
+        mBackendUrl = sharedPref.getString( SettingsActivity.KEY_PREF_BACKEND_URL, "" );
+
+        mDvrServiceHelper = new DvrServiceHelper( getActivity(), mBackendUrl );
 
         prepareBackgroundManager();
 
@@ -119,8 +128,6 @@ public class MainFragment extends BrowseFragment {
 
         GridItemPresenter mGridPresenter = new GridItemPresenter();
         ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter( mGridPresenter );
-        gridRowAdapter.add(getResources().getString( R.string.grid_view ) );
-        gridRowAdapter.add(getResources().getString( R.string.send_feeback ) );
         gridRowAdapter.add(getResources().getString( R.string.personal_settings ) );
         mRowsAdapter.add( new ListRow( gridHeader, gridRowAdapter ) );
 
@@ -157,6 +164,7 @@ public class MainFragment extends BrowseFragment {
     private void setupEventListeners() {
         setOnItemSelectedListener(getDefaultItemSelectedListener());
         setOnItemClickedListener(getDefaultItemClickedListener());
+        setOnItemViewSelectedListener( getDefaultItemViewSelectedListener() );
         setOnSearchClickedListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -182,15 +190,41 @@ public class MainFragment extends BrowseFragment {
         return new OnItemClickedListener() {
             @Override
             public void onItemClicked(Object item, Row row) {
-                if (item instanceof Movie) {
-                    Movie movie = (Movie) item;
-                    Log.d(TAG, "Item: " + item.toString());
+                if (item instanceof Program) {
+                    Program program = (Program) item;
+                    Log.d(TAG, "Program: " + item.toString());
                     Intent intent = new Intent(getActivity(), DetailsActivity.class);
-                    intent.putExtra(getString(R.string.movie), movie);
+                    intent.putExtra(getString(R.string.program), program);
                     startActivity(intent);
                 } else if (item instanceof String) {
+
+                    if( item.equals( getResources().getString( R.string.personal_settings ) ) ) {
+                        Intent intent = new Intent(getActivity(), SettingsActivity.class);
+                        startActivity(intent);
+                    }
+
                     Toast.makeText(getActivity(), (String) item, Toast.LENGTH_SHORT)
                             .show();
+                }
+            }
+        };
+    }
+
+    protected OnItemViewSelectedListener getDefaultItemViewSelectedListener() {
+        return new OnItemViewSelectedListener() {
+
+            @Override
+            public void onItemSelected(Presenter.ViewHolder viewHolder, Object item, RowPresenter.ViewHolder viewHolder2, Row row) {
+                if (item instanceof Program ) {
+                    String url = mBackendUrl + "/Content/GetRecordingArtwork?Inetref=" + ((Program) item).getInetref();
+                    try {
+                        URI uri = new URI( url );
+                        updateBackground(uri);
+                    } catch (URISyntaxException e) {
+                        Log.e( TAG, "error parsing url", e );
+                    }
+                } else {
+                    clearBackground();
                 }
             }
         };

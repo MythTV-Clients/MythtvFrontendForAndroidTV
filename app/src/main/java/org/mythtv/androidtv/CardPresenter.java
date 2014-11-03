@@ -1,10 +1,12 @@
 package org.mythtv.androidtv;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
 import android.util.Log;
@@ -14,16 +16,29 @@ import android.view.ViewGroup;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.mythtv.androidtv.model.Program;
+import org.mythtv.androidtv.settings.SettingsActivity;
 
 import java.net.URI;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class CardPresenter extends Presenter {
+
     private static final String TAG = "CardPresenter";
+
+    private static final DateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" );
 
     private static Context mContext;
     private static int CARD_WIDTH = 313;
     private static int CARD_HEIGHT = 176;
+
+    private String mBackendUrl;
 
     static class ViewHolder extends Presenter.ViewHolder {
         private Program mProgram;
@@ -64,7 +79,11 @@ public class CardPresenter extends Presenter {
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
         Log.d(TAG, "onCreateViewHolder");
+
         mContext = parent.getContext();
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences( mContext );
+        mBackendUrl = sharedPref.getString( SettingsActivity.KEY_PREF_BACKEND_URL, "" );
 
         ImageCardView cardView = new ImageCardView(mContext);
         cardView.setFocusable(true);
@@ -85,7 +104,11 @@ public class CardPresenter extends Presenter {
             ((ViewHolder) viewHolder).mCardView.setMainImageDimensions( CARD_WIDTH, CARD_HEIGHT );
             //((ViewHolder) viewHolder).mCardView.setBadgeImage(mContext.getResources().getDrawable(
             //        R.drawable.videos_by_google_icon));
-            ((ViewHolder) viewHolder).updateCardViewImage( MainFragment.BASE_URL + "/Content/GetRecordingArtwork?Inetref=" + program.getInetref() + "&Width=" + CARD_WIDTH );
+        Log.i( TAG, program.toString() );
+
+        DateTime start = new DateTime( program.getRecording().getStart() ).withZone( DateTimeZone.UTC );
+        Log.i( TAG, mBackendUrl + "/Content/GetPreviewImage?ChanId=" + program.getChannel().getId() + "&StartTime=" + start.toString( "yyyy-MM-dd'T'HH:mm:ss" ) + "&Width=" + CARD_WIDTH );
+            ((ViewHolder) viewHolder).updateCardViewImage(mBackendUrl + "/Content/GetPreviewImage?ChanId=" + program.getChannel().getId() + "&StartTime=" + start.toString( "yyyy-MM-dd'T'HH:mm:ss" ) + "&Width=" + CARD_WIDTH);
 //        }
     }
 
@@ -121,6 +144,29 @@ public class CardPresenter extends Presenter {
         public void onPrepareLoad(Drawable drawable) {
             // Do nothing, default_background manager has its own transitions
         }
+    }
+
+    private String get_UTC_Datetime_from_timestamp( long timeStamp ) {
+
+        try {
+
+            Calendar cal = Calendar.getInstance();
+            TimeZone tz = cal.getTimeZone();
+
+            int tzt = tz.getOffset( System.currentTimeMillis() );
+
+            timeStamp -= tzt;
+
+            // DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
+            DateFormat sdf = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss" );
+            Date netDate = new Date( timeStamp );
+
+            return sdf.format(netDate);
+
+        } catch( Exception ex ) {
+            return "";
+        }
+
     }
 
 }
