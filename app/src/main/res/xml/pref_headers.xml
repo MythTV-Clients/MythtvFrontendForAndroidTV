@@ -3,15 +3,15 @@
     <!-- These settings headers are only used on tablets. -->
 
     <header
-        android:fragment="org.mythtv.androidtv.settings.SettingsActivity$GeneralPreferenceFragment"
+        android:fragment="org.mythtv.androidtv.ui.settings.SettingsActivity$GeneralPreferenceFragment"
         android:title="@string/pref_header_general" />
 
     <header
-        android:fragment="org.mythtv.androidtv.settings.SettingsActivity$NotificationPreferenceFragment"
+        android:fragment="org.mythtv.androidtv.ui.settings.SettingsActivity$NotificationPreferenceFragment"
         android:title="@string/pref_header_notifications" />
 
     <header
-        android:fragment="org.mythtv.androidtv.settings.SettingsActivity$DataSyncPreferenceFragment"
+        android:fragment="org.mythtv.androidtv.ui.settings.SettingsActivity$DataSyncPreferenceFragment"
         android:title="@string/pref_header_data_sync" />
 
 </preference-headers>

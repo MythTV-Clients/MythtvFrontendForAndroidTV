@@ -19,25 +19,32 @@ android {
         }
     }
     packagingOptions {
+        exclude 'META-INF/LICENSE'
         exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE'
         exclude 'META-INF/NOTICE.txt'
     }
+    lintOptions {
+        abortOnError false
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
 }
 
 dependencies {
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-
-
+    compile 'com.android.support:support-v4:21.0.0'
     compile 'com.android.support:recyclerview-v7:21.0.0'
     compile 'com.android.support:leanback-v17:21.0.0'
     compile 'com.android.support:appcompat-v7:21.0.0'
-    compile 'com.squareup.okhttp:okhttp:2.0.0'
-    compile 'com.squareup.okhttp:okhttp-urlconnection:2.0.0'
+
     compile 'com.squareup.picasso:picasso:2.3.2'
-    compile 'com.squareup.retrofit:retrofit:1.7.1'
-    compile 'commons-io:commons-io:2.4'
-    compile 'com.android.support:support-v4:21.0.0'
-    compile 'joda-time:joda-time:2.5'
+
+    compile 'org.mythtv.android:mythtv-service-api:2.0.0'
+
 }
