@@ -7,9 +7,12 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import org.mythtv.androidtv.core.service.ContentService;
 import org.mythtv.androidtv.core.service.DvrService;
-import org.mythtv.androidtv.core.service.v027.DvrServiceV27EventHandler;
-import org.mythtv.androidtv.core.service.v028.DvrServiceV28EventHandler;
+import org.mythtv.androidtv.core.service.v027.content.ContentServiceV27EventHandler;
+import org.mythtv.androidtv.core.service.v027.dvr.DvrServiceV27EventHandler;
+import org.mythtv.androidtv.core.service.v028.content.ContentServiceV28EventHandler;
+import org.mythtv.androidtv.core.service.v028.dvr.DvrServiceV28EventHandler;
 import org.mythtv.androidtv.ui.settings.SettingsActivity;
 import org.mythtv.services.api.ApiVersion;
 import org.mythtv.services.api.MythTvApiContext;
@@ -35,6 +38,7 @@ public class MainApplication extends Application {
 
     private MythTvApiContext mMythTvApiContext;
 
+    private ContentService mContentService;
     private DvrService mDvrService;
 
     @Override
@@ -51,6 +55,10 @@ public class MainApplication extends Application {
 
     public MythTvApiContext getMythTvApiContext() {
         return mMythTvApiContext;
+    }
+
+    public ContentService getContentService() {
+        return mContentService;
     }
 
     public DvrService getDvrService() {
@@ -108,12 +116,14 @@ public class MainApplication extends Application {
 
                     case v027:
 
+                        mContentService = new ContentServiceV27EventHandler( MainApplication.this, mMythTvApiContext );
                         mDvrService = new DvrServiceV27EventHandler( MainApplication.this, mMythTvApiContext );
 
                         break;
 
                     case v028:
 
+                        mContentService = new ContentServiceV28EventHandler( MainApplication.this, mMythTvApiContext );
                         mDvrService = new DvrServiceV28EventHandler( MainApplication.this, mMythTvApiContext );
 
                         break;

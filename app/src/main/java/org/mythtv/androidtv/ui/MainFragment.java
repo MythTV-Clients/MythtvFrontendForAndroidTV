@@ -60,12 +60,14 @@ public class MainFragment extends BrowseFragment {
 
     DvrServiceHelper mDvrServiceHelper;
 
+    BrowseFragment mBrowseFragment;
+
     private ProgramLoaderCompleteReceiver mProgramLoaderCompleteReceiver = new ProgramLoaderCompleteReceiver();
     private BackendConnectedBroadcastReceiver mBackendConnectedBroadcastReceiver = new BackendConnectedBroadcastReceiver();
 
     @Override
     public void onActivityCreated( Bundle savedInstanceState ) {
-        super.onActivityCreated(savedInstanceState);
+        super.onActivityCreated( savedInstanceState );
         Log.i( TAG, "onActivityCreated : enter" );
 
         Log.i( TAG, "onActivityCreated : exit" );

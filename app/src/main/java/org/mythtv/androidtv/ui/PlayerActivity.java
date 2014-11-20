@@ -6,6 +6,8 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
@@ -20,17 +22,24 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.VideoView;
 
-import org.joda.time.DateTime;
 import org.mythtv.androidtv.R;
 import org.mythtv.androidtv.core.MainApplication;
+import org.mythtv.androidtv.core.domain.content.LiveStreamInfo;
 import org.mythtv.androidtv.core.domain.dvr.Program;
+import org.mythtv.androidtv.core.service.ContentService;
+import org.mythtv.androidtv.events.content.AddRecordingLiveStreamEvent;
+import org.mythtv.androidtv.events.content.LiveStreamAddedEvent;
+import org.mythtv.androidtv.events.content.LiveStreamDetailsEvent;
+import org.mythtv.androidtv.events.content.LiveStreamRemovedEvent;
+import org.mythtv.androidtv.events.content.RemoveLiveStreamEvent;
+import org.mythtv.androidtv.events.content.RequestLiveStreamDetailsEvent;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class PlayerActivity extends Activity {
 
-    private static final String TAG = "PlayerActivity";
+    private static final String TAG = PlayerActivity.class.getSimpleName();
 
     private static final int HIDE_CONTROLLER_TIME = 5000;
     private static final int SEEKBAR_DELAY_TIME = 100;
@@ -54,6 +63,7 @@ public class PlayerActivity extends Activity {
     private View mContainer;
     private Timer mSeekbarTimer;
     private Timer mControllersTimer;
+    private Timer mGetLiveStreamTimer;
     private PlaybackState mPlaybackState;
     private final Handler mHandler = new Handler();
     private Program mSelectedProgram;
@@ -61,6 +71,9 @@ public class PlayerActivity extends Activity {
     private boolean mControlersVisible;
     private int mDuration;
     private DisplayMetrics mMetrics;
+
+    private ContentService mContentService;
+    private LiveStreamInfo mLiveStreamInfo;
 
     /*
      * List of various states that we can be in
@@ -72,28 +85,37 @@ public class PlayerActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i( TAG, "onCreate : enter" );
 
         setContentView(R.layout.activity_player);
+
+        mSelectedProgram = (Program) getIntent().getSerializableExtra(getResources().getString(R.string.program ));
+        mContentService = ( (MainApplication) getApplicationContext() ).getContentService();
 
         mMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
 
+        new AddRecordingLiveStreamAsyncTask().execute();
+
         loadViews();
         setupController();
         setupControlsCallbacks();
-        startVideoPlayer();
-        updateMetadata(true);
+//        startVideoPlayer();
+//        updateMetadata(true);
+
     }
 
     private void startVideoPlayer() {
+        Log.i( TAG, "startVideoPlayer : enter" );
+
         Bundle b = getIntent().getExtras();
-        mSelectedProgram = (Program) getIntent().getSerializableExtra(getResources().getString(R.string.program ));
         if (null != b) {
             mShouldStartPlayback = b.getBoolean(getResources().getString(R.string.should_start));
             int startPosition = b.getInt(getResources().getString(R.string.start_position), 0);
-            DateTime start = new DateTime( mSelectedProgram.getRecording().getStartTs() );
-            String url = ( (MainApplication) getApplicationContext() ).getMasterBackendUrl() + "/Content/GetRecording?ChanId=" + mSelectedProgram.getChannel().getChanId() + "&StartTime=" + start.toString( "yyyy-MM-dd'T'HH:mm:ss" );
-            mVideoView.setVideoPath( url );
+
+            String url = mLiveStreamInfo.getFullURL();
+            Log.i( TAG, "startVideoPlayer : url=" + url );
+            mVideoView.setVideoURI( Uri.parse( url ) );
 
             if (mShouldStartPlayback) {
                 mPlaybackState = PlaybackState.PLAYING;
@@ -113,6 +135,8 @@ public class PlayerActivity extends Activity {
     }
 
     private void updatePlaybackLocation() {
+        Log.i( TAG, "updatePlaybackLocation : enter" );
+
         if (mPlaybackState == PlaybackState.PLAYING ||
                 mPlaybackState == PlaybackState.BUFFERING) {
             startControllersTimer();
@@ -122,6 +146,8 @@ public class PlayerActivity extends Activity {
     }
 
     private void play(int position) {
+        Log.i( TAG, "play : enter" );
+
         startControllersTimer();
         mVideoView.seekTo(position);
         mVideoView.start();
@@ -130,6 +156,7 @@ public class PlayerActivity extends Activity {
 
     private void stopSeekBarTimer() {
         Log.d(TAG, "Stopped TrickPlay Timer");
+
         if (null != mSeekbarTimer) {
             mSeekbarTimer.cancel();
         }
@@ -156,6 +183,20 @@ public class PlayerActivity extends Activity {
         mControllersTimer.schedule(new HideControllersTask(), HIDE_CONTROLLER_TIME);
     }
 
+    private void stopGetLiveStreamTimer() {
+        if( null != mGetLiveStreamTimer ) {
+            mGetLiveStreamTimer.cancel();
+        }
+    }
+
+    private void startGetLiveStreamTimer() {
+        if( null != mGetLiveStreamTimer ) {
+            mGetLiveStreamTimer.cancel();
+        }
+        mGetLiveStreamTimer = new Timer();
+        mGetLiveStreamTimer.schedule( mGetLiveStreamTask, 10000, 5000 );
+    }
+
     private void updateControlersVisibility(boolean show) {
         if (show) {
             mControllers.setVisibility(View.VISIBLE);
@@ -175,6 +216,9 @@ public class PlayerActivity extends Activity {
         if (null != mControllersTimer) {
             mControllersTimer.cancel();
         }
+        if( null != mGetLiveStreamTimer ) {
+            mGetLiveStreamTimer.cancel();
+        }
         mVideoView.pause();
         mPlaybackState = PlaybackState.PAUSED;
         updatePlayButton(PlaybackState.PAUSED);
@@ -189,8 +233,12 @@ public class PlayerActivity extends Activity {
     @Override
     protected void onDestroy() {
         Log.d(TAG, "onDestroy() is called");
+
+        new RemoveRecordingLiveStreamAsyncTask().execute();
+
         stopControllersTimer();
         stopSeekBarTimer();
+
         super.onDestroy();
     }
 
@@ -426,4 +474,120 @@ public class PlayerActivity extends Activity {
             }
         }
     };
+
+    private class GetLiveStreamAsyncTask extends AsyncTask<Void, Void, LiveStreamDetailsEvent> {
+
+        private String TAG = GetLiveStreamAsyncTask.class.getSimpleName();
+
+        @Override
+        protected LiveStreamDetailsEvent doInBackground( Void... params ) {
+            Log.d( TAG, "doInBackground : get recording hls" );
+
+            return mContentService.getLiveStream( new RequestLiveStreamDetailsEvent( mLiveStreamInfo.getId() ) );
+        }
+
+        @Override
+        protected void onPostExecute( LiveStreamDetailsEvent liveStreamDetailsEvent ) {
+
+            if( !liveStreamDetailsEvent.isModified() ) {
+                Log.d( TAG, "onPostExecute : recording hls is not modified" );
+            }
+
+            if( liveStreamDetailsEvent.isEntityFound() ) {
+                Log.d( TAG, "onPostExecute : recording hls retrieved" );
+
+                mLiveStreamInfo = LiveStreamInfo.fromDetails( liveStreamDetailsEvent.getDetails() );
+                if( mLiveStreamInfo.getPercentComplete() > 2 ) {
+                    Log.v( TAG, "onPostExecute : recording hls processed greater than 2%" );
+
+                    stopGetLiveStreamTimer();
+
+//                    loadViews();
+//                    setupController();
+//                    setupControlsCallbacks();
+                    startVideoPlayer();
+                    updateMetadata( true );
+
+                }
+
+            }
+
+        }
+
+    }
+
+    TimerTask mGetLiveStreamTask = new TimerTask() {
+
+        @Override
+        public void run() {
+
+            mHandler.post( new Runnable() {
+
+                @Override
+                public void run() {
+
+                    new GetLiveStreamAsyncTask().execute();
+
+                }
+
+            });
+
+        }
+
+    };
+
+    private class AddRecordingLiveStreamAsyncTask extends AsyncTask<Void, Void, LiveStreamAddedEvent> {
+
+        private String TAG = AddRecordingLiveStreamAsyncTask.class.getSimpleName();
+
+        @Override
+        protected LiveStreamAddedEvent doInBackground( Void... params ) {
+            Log.d( TAG, "doInBackground : adding recording hls" );
+
+            return mContentService.addRecordingLiveStream( new AddRecordingLiveStreamEvent( mSelectedProgram.getRecording().getRecordedId(), mSelectedProgram.getChannel().getChanId(), mSelectedProgram.getRecording().getStartTs(), 0, mMetrics.widthPixels, mMetrics.heightPixels, null, null, null ) );
+        }
+
+        @Override
+        protected void onPostExecute( LiveStreamAddedEvent liveStreamAddedEvent ) {
+
+            if( null != liveStreamAddedEvent.getKey() ) {
+                Log.d( TAG, "onPostExecute : recording hls added" );
+
+                mLiveStreamInfo = LiveStreamInfo.fromDetails( liveStreamAddedEvent.getDetails() );
+
+                startGetLiveStreamTimer();
+
+            } else {
+                Log.d( TAG, "onPostExecute : recording hls NOT added" );
+            }
+
+        }
+
+    }
+
+    private class RemoveRecordingLiveStreamAsyncTask extends AsyncTask<Void, Void, LiveStreamRemovedEvent> {
+
+        private String TAG = RemoveRecordingLiveStreamAsyncTask.class.getSimpleName();
+
+        @Override
+        protected LiveStreamRemovedEvent doInBackground( Void... params ) {
+            Log.d( TAG, "doInBackground : removing recording hls" );
+
+            return mContentService.removeLiveStream( new RemoveLiveStreamEvent( mLiveStreamInfo.getId() ) );
+        }
+
+        @Override
+        protected void onPostExecute( LiveStreamRemovedEvent liveStreamRemovedEvent ) {
+
+            if( liveStreamRemovedEvent.isDeletionCompleted() ) {
+                Log.d( TAG, "onPostExecute : recording hls removed" );
+
+            } else {
+                Log.d( TAG, "onPostExecute : recording hls NOT removed" );
+            }
+
+        }
+
+    }
+
 }
