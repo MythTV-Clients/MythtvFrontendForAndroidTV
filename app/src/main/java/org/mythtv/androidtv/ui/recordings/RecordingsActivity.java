@@ -1,28 +1,24 @@
-package org.mythtv.androidtv.ui;
+package org.mythtv.androidtv.ui.recordings;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.mythtv.androidtv.R;
 import org.mythtv.androidtv.core.MainApplication;
 import org.mythtv.androidtv.ui.settings.SettingsActivity;
 
-public class MainActivity extends Activity {
+public class RecordingsActivity extends Activity {
 
-    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String TAG = RecordingsActivity.class.getSimpleName();
 
     @Override
     protected void onCreate( Bundle savedInstanceState ) {
-        super.onCreate( savedInstanceState );
-        Log.i( TAG, "onCreate : enter" );
+        super.onCreate(savedInstanceState);
+        Log.i(TAG, "onCreate : enter");
 
         if( ( (MainApplication) getApplicationContext() ).isConnected() ) {
             Log.d( TAG, "onCreate : backend already connected" );
@@ -46,17 +42,8 @@ public class MainActivity extends Activity {
 
         }
 
-        setContentView( R.layout.activity_main );
+        setContentView( R.layout.activity_recordings);
 
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d( TAG, "onResume : enter" );
-
-
-        Log.d( TAG, "onResume : exit" );
     }
 
 }

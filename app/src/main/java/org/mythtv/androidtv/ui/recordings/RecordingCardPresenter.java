@@ -1,4 +1,4 @@
-package org.mythtv.androidtv.ui;
+package org.mythtv.androidtv.ui.recordings;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -18,9 +18,9 @@ import org.mythtv.androidtv.R;
 import org.mythtv.androidtv.core.MainApplication;
 import org.mythtv.androidtv.core.domain.dvr.Program;
 
-public class CardPresenter extends Presenter {
+public class RecordingCardPresenter extends Presenter {
 
-    private static final String TAG = "CardPresenter";
+    private static final String TAG = RecordingCardPresenter.class.getSimpleName();
 
     private static Context mContext;
     private static int CARD_WIDTH = 313;

@@ -33,6 +33,7 @@ import org.mythtv.androidtv.events.content.LiveStreamDetailsEvent;
 import org.mythtv.androidtv.events.content.LiveStreamRemovedEvent;
 import org.mythtv.androidtv.events.content.RemoveLiveStreamEvent;
 import org.mythtv.androidtv.events.content.RequestLiveStreamDetailsEvent;
+import org.mythtv.androidtv.ui.recordings.RecordingDetailsActivity;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -291,7 +292,7 @@ public class PlayerActivity extends Activity {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    Intent intent = new Intent(PlayerActivity.this, DetailsActivity.class);
+                    Intent intent = new Intent(PlayerActivity.this, RecordingDetailsActivity.class);
                     intent.putExtra(getResources().getString(R.string.program), mSelectedProgram);
                     startActivity(intent);
                 }

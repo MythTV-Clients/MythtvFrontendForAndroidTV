@@ -1,4 +1,4 @@
-package org.mythtv.androidtv.ui;
+package org.mythtv.androidtv.ui.recordings;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,12 +42,13 @@ import org.mythtv.androidtv.R;
 import org.mythtv.androidtv.core.MainApplication;
 import org.mythtv.androidtv.core.domain.dvr.Program;
 import org.mythtv.androidtv.core.service.DvrServiceHelper;
+import org.mythtv.androidtv.ui.PicassoBackgroundManagerTarget;
 import org.mythtv.androidtv.ui.settings.SettingsActivity;
 
 
-public class MainFragment extends BrowseFragment {
+public class RecordingsFragment extends BrowseFragment {
 
-    private static final String TAG = "MainFragment";
+    private static final String TAG = RecordingsFragment.class.getSimpleName();
 
     private ArrayObjectAdapter mRowsAdapter;
     private Drawable mDefaultBackground;
@@ -56,7 +57,7 @@ public class MainFragment extends BrowseFragment {
     private Timer mBackgroundTimer;
     private final Handler mHandler = new Handler();
     private URI mBackgroundURI;
-    CardPresenter mCardPresenter;
+    RecordingCardPresenter mRecordingCardPresenter;
 
     DvrServiceHelper mDvrServiceHelper;
 
@@ -106,12 +107,12 @@ public class MainFragment extends BrowseFragment {
         Map<String, List<Program>> programs = mDvrServiceHelper.getPrograms();
 
         mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
-        mCardPresenter = new CardPresenter();
+        mRecordingCardPresenter = new RecordingCardPresenter();
 
         int i = 0;
         for( String category : categories.keySet() ) {
 
-            ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter( mCardPresenter );
+            ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(mRecordingCardPresenter);
             for( Program program : programs.get( category ) ) {
                 listRowAdapter.add( program );
             }
@@ -197,7 +198,7 @@ public class MainFragment extends BrowseFragment {
                 if (item instanceof Program) {
                     Program program = (Program) item;
                     Log.d(TAG, "Program: " + item.toString());
-                    Intent intent = new Intent(getActivity(), DetailsActivity.class);
+                    Intent intent = new Intent(getActivity(), RecordingDetailsActivity.class);
                     intent.putExtra(getString(R.string.program), program);
                     startActivity(intent);
                 } else if (item instanceof String) {

@@ -1,16 +1,14 @@
-package org.mythtv.androidtv.ui;
+package org.mythtv.androidtv.ui.recordings;
 
 import java.io.IOException;
 import java.net.URI;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v17.leanback.app.DetailsFragment;
 import android.support.v17.leanback.widget.Action;
@@ -33,10 +31,12 @@ import com.squareup.picasso.Target;
 import org.mythtv.androidtv.R;
 import org.mythtv.androidtv.core.MainApplication;
 import org.mythtv.androidtv.core.domain.dvr.Program;
-import org.mythtv.androidtv.ui.settings.SettingsActivity;
+import org.mythtv.androidtv.ui.PicassoBackgroundManagerTarget;
+import org.mythtv.androidtv.ui.PlayerActivity;
 
-public class VideoDetailsFragment extends DetailsFragment {
-    private static final String TAG = "VideoDetailsFragment";
+public class RecordingDetailsFragment extends DetailsFragment {
+
+    private static final String TAG = RecordingDetailsFragment.class.getSimpleName();
 
     private static final int ACTION_WATCH = 1;
     private static final int ACTION_RENT = 2;
@@ -106,7 +106,7 @@ public class VideoDetailsFragment extends DetailsFragment {
         protected void onPostExecute(DetailsOverviewRow detailRow) {
             ClassPresenterSelector ps = new ClassPresenterSelector();
             DetailsOverviewRowPresenter dorPresenter =
-                    new DetailsOverviewRowPresenter(new DetailsDescriptionPresenter());
+                    new DetailsOverviewRowPresenter(new RecordingDetailsDescriptionPresenter());
             // set detail background and style
             dorPresenter.setBackgroundColor(getResources().getColor(R.color.detail_background));
             dorPresenter.setStyleLarge(true);
@@ -155,7 +155,7 @@ public class VideoDetailsFragment extends DetailsFragment {
             public void onItemClicked(Object item, Row row) {
                 if (item instanceof Program) {
                     Program program = (Program) item;
-                    Intent intent = new Intent(getActivity(), DetailsActivity.class);
+                    Intent intent = new Intent(getActivity(), RecordingDetailsActivity.class);
                     intent.putExtra(PROGRAM, program);
                     startActivity(intent);
                 }
