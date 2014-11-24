@@ -77,6 +77,7 @@ public class RecordingsFragment extends BrowseFragment {
     @Override
     public void onResume() {
         super.onResume();
+        Log.i(TAG, "onResume : enter");
 
         IntentFilter programLoaderCompleteIntentFilter = new IntentFilter( DvrServiceHelper.ACTION_COMPLETE );
         getActivity().registerReceiver( mProgramLoaderCompleteReceiver, programLoaderCompleteIntentFilter );
@@ -85,11 +86,13 @@ public class RecordingsFragment extends BrowseFragment {
         backendConnectedIntentFilter.addAction( MainApplication.ACTION_NOT_CONNECTED );
         getActivity().registerReceiver( mBackendConnectedBroadcastReceiver, backendConnectedIntentFilter );
 
+        Log.i( TAG, "onResume : exit" );
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        Log.i(TAG, "onPause : enter");
 
         if( null != mProgramLoaderCompleteReceiver ) {
             getActivity().unregisterReceiver( mProgramLoaderCompleteReceiver );
@@ -99,20 +102,22 @@ public class RecordingsFragment extends BrowseFragment {
             getActivity().unregisterReceiver( mBackendConnectedBroadcastReceiver );
         }
 
+        Log.i( TAG, "onPause : exit" );
     }
 
     private void loadRows() {
+        Log.d( TAG, "loadRows : enter" );
 
         Map<String, String> categories = mDvrServiceHelper.getCategories();
         Map<String, List<Program>> programs = mDvrServiceHelper.getPrograms();
 
-        mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+        mRowsAdapter = new ArrayObjectAdapter( new ListRowPresenter() );
         mRecordingCardPresenter = new RecordingCardPresenter();
 
         int i = 0;
         for( String category : categories.keySet() ) {
 
-            ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(mRecordingCardPresenter);
+            ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter( mRecordingCardPresenter );
             for( Program program : programs.get( category ) ) {
                 listRowAdapter.add( program );
             }
@@ -127,11 +132,12 @@ public class RecordingsFragment extends BrowseFragment {
 
         GridItemPresenter mGridPresenter = new GridItemPresenter();
         ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter( mGridPresenter );
-        gridRowAdapter.add(getResources().getString( R.string.personal_settings ) );
+        gridRowAdapter.add( getResources().getString( R.string.personal_settings ) );
         mRowsAdapter.add( new ListRow( gridHeader, gridRowAdapter ) );
 
         setAdapter( mRowsAdapter );
 
+        Log.d( TAG, "loadRows : exit" );
     }
 
     private void prepareBackgroundManager() {

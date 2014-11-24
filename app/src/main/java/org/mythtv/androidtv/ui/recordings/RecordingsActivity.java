@@ -17,16 +17,18 @@ public class RecordingsActivity extends Activity {
 
     @Override
     protected void onCreate( Bundle savedInstanceState ) {
-        super.onCreate(savedInstanceState);
-        Log.i(TAG, "onCreate : enter");
+        super.onCreate( savedInstanceState );
+        Log.i( TAG, "onCreate : enter" );
 
         if( ( (MainApplication) getApplicationContext() ).isConnected() ) {
-            Log.d( TAG, "onCreate : backend already connected" );
+            Log.d(TAG, "onCreate : backend already connected");
+
+            ( (MainApplication) getApplicationContext() ).resetBackend();
 
         } else {
             Log.d( TAG, "onCreate : backend NOT connected" );
 
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences( this );
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
             String backendUrlPref = sharedPref.getString( SettingsActivity.KEY_PREF_BACKEND_URL, "" );
 
             if( "".equals( backendUrlPref ) || getResources().getString( R.string.pref_backend_url ).equals( backendUrlPref ) ) {
@@ -42,7 +44,7 @@ public class RecordingsActivity extends Activity {
 
         }
 
-        setContentView( R.layout.activity_recordings);
+        setContentView( R.layout.activity_recordings );
 
     }
 
