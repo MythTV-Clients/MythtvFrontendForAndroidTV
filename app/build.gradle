@@ -15,7 +15,8 @@ android {
 
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -42,6 +43,14 @@ repositories {
     mavenLocal()
 }
 
+// To use: File->Settings->Compiler->Command-line Options: -PuseAPISnapshot=true
+String apiDependency = 'org.mythtv.android:mythtv-service-api:2.0.0'
+
+if (hasProperty('useAPISnapshot')) {
+    apiDependency += '-SNAPSHOT'
+    println '*** Built using Service API: ' + apiDependency
+}
+
 dependencies {
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -50,9 +59,7 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:21.0.2'
     compile 'com.android.support:leanback-v17:21.0.2'
     compile 'com.android.support:appcompat-v7:21.0.2'
-
     compile 'com.squareup.picasso:picasso:2.3.2'
-
-    compile 'org.mythtv.android:mythtv-service-api:2.0.0'
+    compile apiDependency
 
 }
