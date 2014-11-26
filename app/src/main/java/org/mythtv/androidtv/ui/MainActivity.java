@@ -15,6 +15,7 @@ import org.mythtv.androidtv.R;
 import org.mythtv.androidtv.core.MainApplication;
 import org.mythtv.androidtv.ui.recordings.RecordingsActivity;
 import org.mythtv.androidtv.ui.settings.SettingsActivity;
+import org.mythtv.androidtv.ui.videos.VideosActivity;
 
 import java.util.ArrayList;
 
@@ -77,6 +78,10 @@ public class MainActivity extends Activity {
                         break;
 
                     case 1 :
+
+                        Intent videos = new Intent( MainActivity.this, VideosActivity.class );
+                        startActivity( videos );
+
                         break;
 
                     case 2 :

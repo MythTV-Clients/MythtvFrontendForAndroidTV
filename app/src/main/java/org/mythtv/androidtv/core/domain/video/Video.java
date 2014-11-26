@@ -3,8 +3,12 @@ package org.mythtv.androidtv.core.domain.video;
 import org.joda.time.DateTime;
 import org.mythtv.androidtv.core.domain.dvr.ArtworkInfo;
 import org.mythtv.androidtv.core.domain.dvr.CastMember;
+import org.mythtv.androidtv.events.dvr.ArtworkInfoDetails;
+import org.mythtv.androidtv.events.dvr.CastMemberDetails;
+import org.mythtv.androidtv.events.video.VideoDetails;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -495,4 +499,152 @@ public class Video implements Serializable {
     public void setCastMembers(List<CastMember> castMembers) {
         this.castMembers = castMembers;
     }
+
+    @Override
+    public String toString() {
+        return "Video{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", subTitle='" + subTitle + '\'' +
+                ", tagline='" + tagline + '\'' +
+                ", director='" + director + '\'' +
+                ", studio='" + studio + '\'' +
+                ", description='" + description + '\'' +
+                ", certification='" + certification + '\'' +
+                ", inetref='" + inetref + '\'' +
+                ", collectionref=" + collectionref +
+                ", homePage='" + homePage + '\'' +
+                ", releaseDate=" + releaseDate +
+                ", addDate=" + addDate +
+                ", userRating=" + userRating +
+                ", length=" + length +
+                ", playCount=" + playCount +
+                ", season=" + season +
+                ", episode=" + episode +
+                ", parentalLevel=" + parentalLevel +
+                ", visible=" + visible +
+                ", watched=" + watched +
+                ", processed=" + processed +
+                ", contentType='" + contentType + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", hash='" + hash + '\'' +
+                ", hostName='" + hostName + '\'' +
+                ", coverart='" + coverart + '\'' +
+                ", fanart='" + fanart + '\'' +
+                ", banner='" + banner + '\'' +
+                ", screenshot='" + screenshot + '\'' +
+                ", trailer='" + trailer + '\'' +
+                ", artworkInfos=" + artworkInfos +
+                ", castMembers=" + castMembers +
+                '}';
+    }
+
+    public VideoDetails toDetails() {
+
+        VideoDetails details = new VideoDetails();
+        details.setId( id );
+        details.setTitle( title );
+        details.setSubTitle( subTitle );
+        details.setTagline( tagline );
+        details.setDirector( director );
+        details.setStudio( studio );
+        details.setDescription( description );
+        details.setCertification( certification );
+        details.setInetref( inetref );
+        details.setCollectionref( collectionref );
+        details.setHomePage( homePage );
+        details.setReleaseDate( releaseDate );
+        details.setAddDate( addDate );
+        details.setUserRating( userRating );
+        details.setLength( length );
+        details.setPlayCount( playCount );
+        details.setSeason( season );
+        details.setEpisode( episode );
+        details.setParentalLevel( parentalLevel );
+        details.setVisible( visible );
+        details.setWatched( watched );
+        details.setProcessed( processed );
+        details.setContentType( contentType );
+        details.setFileName( fileName );
+        details.setHash( hash );
+        details.setHostName( hostName );
+        details.setCoverart( coverart );
+        details.setFanart( fanart );
+        details.setBanner( banner );
+        details.setScreenshot( screenshot );
+        details.setTrailer( trailer );
+
+        List<ArtworkInfoDetails> artworkInfoDetails = new ArrayList<ArtworkInfoDetails>();
+        if( null != artworkInfos && !artworkInfos.isEmpty() ) {
+            for( ArtworkInfo artworkInfo : artworkInfos ) {
+                artworkInfoDetails.add( artworkInfo.toDetails() );
+            }
+        }
+        details.setArtworkInfos( artworkInfoDetails );
+
+        List<CastMemberDetails> castMemberDetails = new ArrayList<CastMemberDetails>();
+        if( null != castMembers && !castMembers.isEmpty() ) {
+            for( CastMember castMember : castMembers ) {
+                castMemberDetails.add( castMember.toDetails() );
+            }
+        }
+        details.setCastMembers( castMemberDetails );
+
+        return details;
+    }
+
+    public static Video fromDetails( VideoDetails details ) {
+
+        Video video = new Video();
+        video.setId( details.getId() );
+        video.setTitle( details.getTitle() );
+        video.setSubTitle( details.getSubTitle() );
+        video.setTagline( details.getTagline() );
+        video.setDirector( details.getDirector() );
+        video.setStudio( details.getStudio() );
+        video.setDescription( details.getDescription() );
+        video.setCertification( details.getCertification() );
+        video.setInetref( details.getInetref() );
+        video.setCollectionref( details.getCollectionref() );
+        video.setHomePage( details.getHomePage() );
+        video.setReleaseDate( details.getReleaseDate() );
+        video.setAddDate( details.getAddDate() );
+        video.setUserRating( details.getUserRating() );
+        video.setLength( details.getLength() );
+        video.setPlayCount( details.getPlayCount() );
+        video.setSeason( details.getSeason() );
+        video.setEpisode( details.getEpisode() );
+        video.setParentalLevel( details.getParentalLevel() );
+        video.setVisible( details.isVisible() );
+        video.setWatched( details.isWatched() );
+        video.setProcessed( details.isProcessed() );
+        video.setContentType( details.getContentType() );
+        video.setFileName( details.getFileName() );
+        video.setHash( details.getHash() );
+        video.setHostName( details.getHostName() );
+        video.setCoverart( details.getCoverart() );
+        video.setFanart( details.getFanart() );
+        video.setBanner( details.getBanner() );
+        video.setScreenshot( details.getScreenshot() );
+        video.setTrailer(details.getTrailer());
+
+        List<ArtworkInfo> artworkInfos = new ArrayList<ArtworkInfo>();
+        if( null != details.getArtworkInfos() && !details.getArtworkInfos().isEmpty() ) {
+            for( ArtworkInfoDetails artworkInfoDetails : details.getArtworkInfos() ) {
+                artworkInfos.add( ArtworkInfo.fromDetails(artworkInfoDetails) );
+            }
+        }
+        video.setArtworkInfos(artworkInfos);
+
+        List<CastMember> castMembers = new ArrayList<CastMember>();
+        if( null != details.getCastMembers() && !details.getCastMembers().isEmpty() ) {
+            for( CastMemberDetails castMemberDetails : details.getCastMembers() ) {
+                castMembers.add( CastMember.fromDetails(castMemberDetails) );
+            }
+        }
+        video.setCastMembers(castMembers);
+
+        return video;
+    }
+
 }

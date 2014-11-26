@@ -1,7 +1,4 @@
-package org.mythtv.androidtv.ui.recordings;
-
-import java.io.IOException;
-import java.net.URI;
+package org.mythtv.androidtv.ui.videos;
 
 import android.content.Context;
 import android.content.Intent;
@@ -31,12 +28,16 @@ import com.squareup.picasso.Target;
 import org.mythtv.androidtv.R;
 import org.mythtv.androidtv.core.MainApplication;
 import org.mythtv.androidtv.core.domain.dvr.Program;
+import org.mythtv.androidtv.core.domain.video.Video;
 import org.mythtv.androidtv.ui.PicassoBackgroundManagerTarget;
 import org.mythtv.androidtv.ui.PlayerActivity;
 
-public class RecordingDetailsFragment extends DetailsFragment {
+import java.io.IOException;
+import java.net.URI;
 
-    private static final String TAG = RecordingDetailsFragment.class.getSimpleName();
+public class VideoDetailsFragment extends DetailsFragment {
+
+    private static final String TAG = VideoDetailsFragment.class.getSimpleName();
 
     private static final int ACTION_WATCH = 1;
     private static final int ACTION_RENT = 2;
@@ -47,54 +48,56 @@ public class RecordingDetailsFragment extends DetailsFragment {
 
     private static final int NUM_COLS = 10;
 
-    private static final String PROGRAM = "Program";
+    private static final String VIDEO = "Video";
 
-    private Program selectedProgram;
+    private Video selectedVideo;
 
     private Drawable mDefaultBackground;
     private Target mBackgroundTarget;
     private DisplayMetrics mMetrics;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate( Bundle savedInstanceState ) {
         Log.i(TAG, "onCreate DetailsFragment");
-        super.onCreate(savedInstanceState);
+        super.onCreate( savedInstanceState );
 
-        BackgroundManager backgroundManager = BackgroundManager.getInstance(getActivity());
-        backgroundManager.attach(getActivity().getWindow());
-        mBackgroundTarget = new PicassoBackgroundManagerTarget(backgroundManager);
+        BackgroundManager backgroundManager = BackgroundManager.getInstance( getActivity() );
+        backgroundManager.attach( getActivity().getWindow() );
+        mBackgroundTarget = new PicassoBackgroundManagerTarget( backgroundManager );
 
-        mDefaultBackground = getResources().getDrawable(R.drawable.default_background);
+        mDefaultBackground = getResources().getDrawable( R.drawable.default_background );
 
         mMetrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics( mMetrics );
 
-        selectedProgram = (Program) getActivity().getIntent().getSerializableExtra(PROGRAM);
-        new DetailRowBuilderTask().execute(selectedProgram);
+        selectedVideo = (Video) getActivity().getIntent().getSerializableExtra( VIDEO );
+        new DetailRowBuilderTask().execute( selectedVideo );
 
-        setOnItemClickedListener(getDefaultItemClickedListener());
+        setOnItemClickedListener( getDefaultItemClickedListener() );
 //        updateBackground(selectedProgram.getBackgroundImageURI());
 
     }
 
-    private class DetailRowBuilderTask extends AsyncTask<Program, Integer, DetailsOverviewRow> {
-        @Override
-        protected DetailsOverviewRow doInBackground(Program... programs) {
-            selectedProgram = programs[0];
+    private class DetailRowBuilderTask extends AsyncTask<Video, Integer, DetailsOverviewRow> {
 
-            DetailsOverviewRow row = new DetailsOverviewRow(selectedProgram);
+        @Override
+        protected DetailsOverviewRow doInBackground( Video... videos ) {
+
+            selectedVideo = videos[0];
+
+            DetailsOverviewRow row = new DetailsOverviewRow( selectedVideo );
             try {
                 Bitmap poster = Picasso.with(getActivity())
-                        .load( ( (MainApplication) getActivity().getApplicationContext() ).getMasterBackendUrl() + "/Content/GetRecordingArtwork?Inetref=" + selectedProgram.getInetref() + "&Width=" + DETAIL_THUMB_WIDTH )
-                        .resize(dpToPx(DETAIL_THUMB_WIDTH, getActivity().getApplicationContext()),
-                                dpToPx(DETAIL_THUMB_HEIGHT, getActivity().getApplicationContext()))
+                        .load( ( (MainApplication) getActivity().getApplicationContext() ).getMasterBackendUrl() + "/Content/GetVideoArtwork?Id=" + selectedVideo.getId() + "&Width=" + DETAIL_THUMB_WIDTH )
+                        .resize( dpToPx( DETAIL_THUMB_WIDTH, getActivity().getApplicationContext() ),
+                                dpToPx( DETAIL_THUMB_HEIGHT, getActivity().getApplicationContext() ) )
                         .centerCrop()
                         .get();
-                row.setImageBitmap(getActivity(), poster);
+                row.setImageBitmap( getActivity(), poster );
             } catch (IOException e) {
             }
 
-            row.addAction(new Action( ACTION_WATCH, getResources().getString( R.string.watch_recording ) ) );
+            row.addAction(new Action( ACTION_WATCH, getResources().getString( R.string.watch_video ) ) );
 //            row.addAction(new Action(ACTION_RENT, getResources().getString(R.string.rent_1),
 //                    getResources().getString(R.string.rent_2)));
 //            row.addAction(new Action(ACTION_BUY, getResources().getString(R.string.buy_1),
@@ -106,7 +109,7 @@ public class RecordingDetailsFragment extends DetailsFragment {
         protected void onPostExecute(DetailsOverviewRow detailRow) {
             ClassPresenterSelector ps = new ClassPresenterSelector();
             DetailsOverviewRowPresenter dorPresenter =
-                    new DetailsOverviewRowPresenter(new RecordingDetailsDescriptionPresenter());
+                    new DetailsOverviewRowPresenter(new VideoDetailsDescriptionPresenter());
             // set detail background and style
             dorPresenter.setBackgroundColor(getResources().getColor(R.color.detail_background));
             dorPresenter.setStyleLarge(true);
@@ -115,7 +118,7 @@ public class RecordingDetailsFragment extends DetailsFragment {
                 public void onActionClicked(Action action) {
                     if (action.getId() == ACTION_WATCH) {
                         Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                        intent.putExtra(getResources().getString(R.string.recording), selectedProgram);
+                        intent.putExtra(getResources().getString( R.string.video ), selectedVideo );
                         intent.putExtra(getResources().getString(R.string.should_start), true);
                         startActivity(intent);
                     } else {
@@ -124,12 +127,11 @@ public class RecordingDetailsFragment extends DetailsFragment {
                 }
             });
 
-            ps.addClassPresenter(DetailsOverviewRow.class, dorPresenter);
-            ps.addClassPresenter(ListRow.class,
-                    new ListRowPresenter());
+            ps.addClassPresenter( DetailsOverviewRow.class, dorPresenter );
+            ps.addClassPresenter( ListRow.class, new ListRowPresenter() );
 
-            ArrayObjectAdapter adapter = new ArrayObjectAdapter(ps);
-            adapter.add(detailRow);
+            ArrayObjectAdapter adapter = new ArrayObjectAdapter( ps );
+            adapter.add( detailRow );
 
 //            String subcategories[] = {
 //                    getString(R.string.related_movies)
@@ -153,10 +155,10 @@ public class RecordingDetailsFragment extends DetailsFragment {
         return new OnItemClickedListener() {
             @Override
             public void onItemClicked(Object item, Row row) {
-                if (item instanceof Program) {
-                    Program program = (Program) item;
-                    Intent intent = new Intent(getActivity(), RecordingDetailsActivity.class);
-                    intent.putExtra(PROGRAM, program);
+                if (item instanceof Video) {
+                    Video video = (Video) item;
+                    Intent intent = new Intent(getActivity(), VideoDetailsActivity.class);
+                    intent.putExtra( VIDEO, video );
                     startActivity(intent);
                 }
             }

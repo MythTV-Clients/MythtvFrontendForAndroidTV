@@ -90,7 +90,7 @@ public class PlayerActivity extends Activity {
 
         setContentView(R.layout.activity_player);
 
-        mSelectedProgram = (Program) getIntent().getSerializableExtra(getResources().getString(R.string.program ));
+        mSelectedProgram = (Program) getIntent().getSerializableExtra(getResources().getString(R.string.recording ));
         mContentService = ( (MainApplication) getApplicationContext() ).getContentService();
 
         mMetrics = new DisplayMetrics();
@@ -293,7 +293,7 @@ public class PlayerActivity extends Activity {
                 @Override
                 public void run() {
                     Intent intent = new Intent(PlayerActivity.this, RecordingDetailsActivity.class);
-                    intent.putExtra(getResources().getString(R.string.program), mSelectedProgram);
+                    intent.putExtra(getResources().getString(R.string.recording), mSelectedProgram);
                     startActivity(intent);
                 }
             });

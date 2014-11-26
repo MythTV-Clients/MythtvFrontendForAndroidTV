@@ -9,10 +9,13 @@ import android.util.Log;
 
 import org.mythtv.androidtv.core.service.ContentService;
 import org.mythtv.androidtv.core.service.DvrService;
+import org.mythtv.androidtv.core.service.VideoService;
 import org.mythtv.androidtv.core.service.v027.content.ContentServiceV27EventHandler;
 import org.mythtv.androidtv.core.service.v027.dvr.DvrServiceV27EventHandler;
+import org.mythtv.androidtv.core.service.v027.video.VideoServiceV27EventHandler;
 import org.mythtv.androidtv.core.service.v028.content.ContentServiceV28EventHandler;
 import org.mythtv.androidtv.core.service.v028.dvr.DvrServiceV28EventHandler;
+import org.mythtv.androidtv.core.service.v028.video.VideoServiceV28EventHandler;
 import org.mythtv.androidtv.ui.settings.SettingsActivity;
 import org.mythtv.services.api.ApiVersion;
 import org.mythtv.services.api.MythTvApiContext;
@@ -40,6 +43,7 @@ public class MainApplication extends Application {
 
     private ContentService mContentService;
     private DvrService mDvrService;
+    private VideoService mVideoService;
 
     @Override
     public void onCreate() {
@@ -63,6 +67,10 @@ public class MainApplication extends Application {
 
     public DvrService getDvrService() {
         return mDvrService;
+    }
+
+    public VideoService getVideoService() {
+        return mVideoService;
     }
 
     public boolean isConnected() { return mConnected; }
@@ -118,6 +126,7 @@ public class MainApplication extends Application {
 
                         mContentService = new ContentServiceV27EventHandler( MainApplication.this, mMythTvApiContext );
                         mDvrService = new DvrServiceV27EventHandler( MainApplication.this, mMythTvApiContext );
+                        mVideoService = new VideoServiceV27EventHandler( MainApplication.this, mMythTvApiContext );
 
                         break;
 
@@ -125,6 +134,7 @@ public class MainApplication extends Application {
 
                         mContentService = new ContentServiceV28EventHandler( MainApplication.this, mMythTvApiContext );
                         mDvrService = new DvrServiceV28EventHandler( MainApplication.this, mMythTvApiContext );
+                        mVideoService = new VideoServiceV28EventHandler( MainApplication.this, mMythTvApiContext );
 
                         break;
                 }

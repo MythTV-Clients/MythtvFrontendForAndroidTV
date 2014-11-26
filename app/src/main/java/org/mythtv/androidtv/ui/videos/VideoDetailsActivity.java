@@ -1,11 +1,11 @@
-package org.mythtv.androidtv.ui.recordings;
+package org.mythtv.androidtv.ui.videos;
 
 import android.app.Activity;
 import android.os.Bundle;
 
 import org.mythtv.androidtv.R;
 
-public class RecordingDetailsActivity extends Activity {
+public class VideoDetailsActivity extends Activity {
     /**
      * Called when the activity is first created.
      */
@@ -13,7 +13,7 @@ public class RecordingDetailsActivity extends Activity {
     public void onCreate( Bundle savedInstanceState ) {
         super.onCreate( savedInstanceState );
 
-        setContentView( R.layout.activity_recording_details);
+        setContentView( R.layout.activity_video_details );
 
     }
 

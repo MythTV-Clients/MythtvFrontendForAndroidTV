@@ -32,6 +32,9 @@
         <activity android:name=".ui.recordings.RecordingsActivity" />
         <activity android:name=".ui.recordings.RecordingDetailsActivity" />
 
+        <activity android:name=".ui.videos.VideosActivity" />
+        <activity android:name=".ui.videos.VideoDetailsActivity" />
+
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:label="@string/title_activity_settings" >
