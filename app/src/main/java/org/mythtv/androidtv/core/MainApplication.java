@@ -124,17 +124,17 @@ public class MainApplication extends Application {
 
                     case v027:
 
-                        mContentService = new ContentServiceV27EventHandler( MainApplication.this, mMythTvApiContext );
-                        mDvrService = new DvrServiceV27EventHandler( MainApplication.this, mMythTvApiContext );
-                        mVideoService = new VideoServiceV27EventHandler( MainApplication.this, mMythTvApiContext );
+                        mContentService = new ContentServiceV27EventHandler( mMythTvApiContext );
+                        mDvrService = new DvrServiceV27EventHandler( mMythTvApiContext );
+                        mVideoService = new VideoServiceV27EventHandler( mMythTvApiContext );
 
                         break;
 
                     case v028:
 
-                        mContentService = new ContentServiceV28EventHandler( MainApplication.this, mMythTvApiContext );
-                        mDvrService = new DvrServiceV28EventHandler( MainApplication.this, mMythTvApiContext );
-                        mVideoService = new VideoServiceV28EventHandler( MainApplication.this, mMythTvApiContext );
+                        mContentService = new ContentServiceV28EventHandler( mMythTvApiContext );
+                        mDvrService = new DvrServiceV28EventHandler( mMythTvApiContext );
+                        mVideoService = new VideoServiceV28EventHandler( mMythTvApiContext );
 
                         break;
                 }

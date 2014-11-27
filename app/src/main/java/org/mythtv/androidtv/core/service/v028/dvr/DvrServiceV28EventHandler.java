@@ -22,13 +22,10 @@ public class DvrServiceV28EventHandler implements DvrService {
 
     private static final String RECORDED_LIST_REQ_ID = "RECORDED_LIST_REQ_ID";
 
-    Context mContext;
-
     MythTvApi028Context mMythTvApiContext;
 
-    public DvrServiceV28EventHandler( Context context, MythTvApiContext mythTvApiContext ) {
+    public DvrServiceV28EventHandler( MythTvApiContext mythTvApiContext ) {
 
-        mContext = context;
         mMythTvApiContext = (MythTvApi028Context) mythTvApiContext;
 
     }

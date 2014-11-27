@@ -26,13 +26,10 @@ public class ContentServiceV27EventHandler implements ContentService {
 
     private static final String LIVE_STREAM_REQ_ID = "LIVE_STREAM_REQ_ID";
 
-    Context mContext;
-
     MythTvApi027Context mMythTvApiContext;
 
-    public ContentServiceV27EventHandler( Context context, MythTvApiContext mythTvApiContext ) {
+    public ContentServiceV27EventHandler( MythTvApiContext mythTvApiContext ) {
 
-        mContext = context;
         mMythTvApiContext = (MythTvApi027Context) mythTvApiContext;
 
     }

@@ -22,13 +22,10 @@ public class VideoServiceV28EventHandler implements VideoService {
 
     private static final String VIDEO_LIST_REQ_ID = "VIDOE_LIST_REQ_ID";
 
-    Context mContext;
-
     MythTvApi028Context mMythTvApiContext;
 
-    public VideoServiceV28EventHandler( Context context, MythTvApiContext mythTvApiContext ) {
+    public VideoServiceV28EventHandler( MythTvApiContext mythTvApiContext ) {
 
-        mContext = context;
         mMythTvApiContext = (MythTvApi028Context) mythTvApiContext;
 
     }
