@@ -26,14 +26,17 @@ import org.mythtv.androidtv.R;
 import org.mythtv.androidtv.core.MainApplication;
 import org.mythtv.androidtv.core.domain.content.LiveStreamInfo;
 import org.mythtv.androidtv.core.domain.dvr.Program;
+import org.mythtv.androidtv.core.domain.video.Video;
 import org.mythtv.androidtv.core.service.ContentService;
 import org.mythtv.androidtv.events.content.AddRecordingLiveStreamEvent;
+import org.mythtv.androidtv.events.content.AddVideoLiveStreamEvent;
 import org.mythtv.androidtv.events.content.LiveStreamAddedEvent;
 import org.mythtv.androidtv.events.content.LiveStreamDetailsEvent;
 import org.mythtv.androidtv.events.content.LiveStreamRemovedEvent;
 import org.mythtv.androidtv.events.content.RemoveLiveStreamEvent;
 import org.mythtv.androidtv.events.content.RequestLiveStreamDetailsEvent;
 import org.mythtv.androidtv.ui.recordings.RecordingDetailsActivity;
+import org.mythtv.androidtv.ui.videos.VideoDetailsActivity;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -68,6 +71,7 @@ public class PlayerActivity extends Activity {
     private PlaybackState mPlaybackState;
     private final Handler mHandler = new Handler();
     private Program mSelectedProgram;
+    private Video mSelectedVideo;
     private boolean mShouldStartPlayback;
     private boolean mControlersVisible;
     private int mDuration;
@@ -90,24 +94,77 @@ public class PlayerActivity extends Activity {
 
         setContentView(R.layout.activity_player);
 
-        mSelectedProgram = (Program) getIntent().getSerializableExtra(getResources().getString(R.string.recording ));
         mContentService = ( (MainApplication) getApplicationContext() ).getContentService();
 
         mMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
 
-        new AddRecordingLiveStreamAsyncTask().execute();
-
         loadViews();
         setupController();
         setupControlsCallbacks();
-//        startVideoPlayer();
-//        updateMetadata(true);
+
+        if( null != getIntent().getSerializableExtra( getResources().getString( R.string.recording ) ) ) {
+
+            mSelectedProgram = (Program) getIntent().getSerializableExtra( getResources().getString( R.string.recording ) );
+            new AddRecordingLiveStreamAsyncTask().execute();
+
+        }
+
+        if( null != getIntent().getSerializableExtra( getResources().getString( R.string.video ) ) ) {
+
+            mSelectedVideo = (Video) getIntent().getSerializableExtra( getResources().getString( R.string.video ) );
+
+            if( mSelectedVideo.getFileName().endsWith( ".mp4" ) ) {
+                startVideoPlayerSupported();
+                updateMetadata(true);
+            } else if( mSelectedVideo.getFileName().endsWith( ".3gp" ) ) {
+                startVideoPlayerSupported();
+                updateMetadata( true );
+            } else if( mSelectedVideo.getFileName().endsWith( ".webm" ) ) {
+                startVideoPlayerSupported();
+                updateMetadata( true );
+            } else if( mSelectedVideo.getFileName().endsWith( ".mkv" ) ) {
+                startVideoPlayerSupported();
+                updateMetadata( true );
+            } else {
+                new AddVideoLiveStreamAsyncTask().execute();
+            }
+
+        }
 
     }
 
-    private void startVideoPlayer() {
-        Log.i( TAG, "startVideoPlayer : enter" );
+    private void startVideoPlayerSupported() {
+        Log.i( TAG, "startVideoPlayerSupported : enter" );
+
+        Bundle b = getIntent().getExtras();
+        if (null != b) {
+            mShouldStartPlayback = b.getBoolean(getResources().getString(R.string.should_start));
+            int startPosition = b.getInt(getResources().getString(R.string.start_position), 0);
+
+            String url = ( (MainApplication) getApplicationContext() ).getMasterBackendUrl() + "/Content/GetVideo?Id=" + mSelectedVideo.getId();
+            Log.i( TAG, "startVideoPlayerSupported : url=" + url );
+            mVideoView.setVideoURI( Uri.parse( url ) );
+
+            if (mShouldStartPlayback) {
+                mPlaybackState = PlaybackState.PLAYING;
+                updatePlayButton(mPlaybackState);
+                if (startPosition > 0) {
+                    mVideoView.seekTo(startPosition);
+                }
+                mVideoView.start();
+                mPlayPause.requestFocus();
+                startControllersTimer();
+            } else {
+                updatePlaybackLocation();
+                mPlaybackState = PlaybackState.PAUSED;
+                updatePlayButton(mPlaybackState);
+            }
+        }
+    }
+
+    private void startVideoPlayerHls() {
+        Log.i( TAG, "startVideoPlayerHls : enter" );
 
         Bundle b = getIntent().getExtras();
         if (null != b) {
@@ -115,7 +172,7 @@ public class PlayerActivity extends Activity {
             int startPosition = b.getInt(getResources().getString(R.string.start_position), 0);
 
             String url = mLiveStreamInfo.getFullURL();
-            Log.i( TAG, "startVideoPlayer : url=" + url );
+            Log.i( TAG, "startVideoPlayerHls : url=" + url );
             mVideoView.setVideoURI( Uri.parse( url ) );
 
             if (mShouldStartPlayback) {
@@ -235,7 +292,9 @@ public class PlayerActivity extends Activity {
     protected void onDestroy() {
         Log.d(TAG, "onDestroy() is called");
 
-        new RemoveRecordingLiveStreamAsyncTask().execute();
+        if( null != mLiveStreamInfo ) {
+            new RemoveRecordingLiveStreamAsyncTask().execute();
+        }
 
         stopControllersTimer();
         stopSeekBarTimer();
@@ -289,12 +348,23 @@ public class PlayerActivity extends Activity {
 
         @Override
         public void run() {
-            mHandler.post(new Runnable() {
+            mHandler.post( new Runnable() {
+
                 @Override
                 public void run() {
-                    Intent intent = new Intent(PlayerActivity.this, RecordingDetailsActivity.class);
-                    intent.putExtra(getResources().getString(R.string.recording), mSelectedProgram);
-                    startActivity(intent);
+
+                    if( null != mSelectedProgram ) {
+                        Intent intent = new Intent( PlayerActivity.this, RecordingDetailsActivity.class );
+                        intent.putExtra( getResources().getString( R.string.recording ), mSelectedProgram );
+                        startActivity(intent);
+                    }
+
+                    if( null != mSelectedVideo ) {
+                        Intent intent = new Intent( PlayerActivity.this, VideoDetailsActivity.class );
+                        intent.putExtra( getResources().getString( R.string.video ), mSelectedVideo );
+                        startActivity( intent );
+                    }
+
                 }
             });
 
@@ -482,7 +552,7 @@ public class PlayerActivity extends Activity {
 
         @Override
         protected LiveStreamDetailsEvent doInBackground( Void... params ) {
-            Log.d( TAG, "doInBackground : get recording hls" );
+            Log.d( TAG, "doInBackground : get livestream hls" );
 
             return mContentService.getLiveStream( new RequestLiveStreamDetailsEvent( mLiveStreamInfo.getId() ) );
         }
@@ -491,22 +561,22 @@ public class PlayerActivity extends Activity {
         protected void onPostExecute( LiveStreamDetailsEvent liveStreamDetailsEvent ) {
 
             if( !liveStreamDetailsEvent.isModified() ) {
-                Log.d( TAG, "onPostExecute : recording hls is not modified" );
+                Log.d( TAG, "onPostExecute : livestream hls is not modified" );
             }
 
             if( liveStreamDetailsEvent.isEntityFound() ) {
-                Log.d( TAG, "onPostExecute : recording hls retrieved" );
+                Log.d( TAG, "onPostExecute : livestream hls retrieved" );
 
                 mLiveStreamInfo = LiveStreamInfo.fromDetails( liveStreamDetailsEvent.getDetails() );
                 if( mLiveStreamInfo.getPercentComplete() > 2 ) {
-                    Log.v( TAG, "onPostExecute : recording hls processed greater than 2%" );
+                    Log.v( TAG, "onPostExecute : livestream hls processed greater than 2%" );
 
                     stopGetLiveStreamTimer();
 
 //                    loadViews();
 //                    setupController();
 //                    setupControlsCallbacks();
-                    startVideoPlayer();
+                    startVideoPlayerHls();
                     updateMetadata( true );
 
                 }
@@ -546,6 +616,35 @@ public class PlayerActivity extends Activity {
             Log.d( TAG, "doInBackground : adding recording hls" );
 
             return mContentService.addRecordingLiveStream( new AddRecordingLiveStreamEvent( mSelectedProgram.getRecording().getRecordedId(), mSelectedProgram.getChannel().getChanId(), mSelectedProgram.getRecording().getStartTs(), 0, mMetrics.widthPixels, mMetrics.heightPixels, null, null, null ) );
+        }
+
+        @Override
+        protected void onPostExecute( LiveStreamAddedEvent liveStreamAddedEvent ) {
+
+            if( null != liveStreamAddedEvent.getKey() ) {
+                Log.d( TAG, "onPostExecute : recording hls added" );
+
+                mLiveStreamInfo = LiveStreamInfo.fromDetails( liveStreamAddedEvent.getDetails() );
+
+                startGetLiveStreamTimer();
+
+            } else {
+                Log.d( TAG, "onPostExecute : recording hls NOT added" );
+            }
+
+        }
+
+    }
+
+    private class AddVideoLiveStreamAsyncTask extends AsyncTask<Void, Void, LiveStreamAddedEvent> {
+
+        private String TAG = AddVideoLiveStreamAsyncTask.class.getSimpleName();
+
+        @Override
+        protected LiveStreamAddedEvent doInBackground( Void... params ) {
+            Log.d( TAG, "doInBackground : adding recording hls" );
+
+            return mContentService.addVideoLiveStream( new AddVideoLiveStreamEvent( mSelectedVideo.getId(), 0, mMetrics.widthPixels, mMetrics.heightPixels, null, null, null ) );
         }
 
         @Override

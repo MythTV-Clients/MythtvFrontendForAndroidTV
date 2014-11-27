@@ -62,9 +62,9 @@ public class VideoServiceHelper {
 
             String cleanedTitle = cleanArticles( video.getTitle() );
             String category = cleanedTitle.substring( 0, 1 ).toUpperCase();
-            Log.i( TAG, "prepareVideos : category=" + category + ", cleanedTitle=" + cleanedTitle );
+//            Log.i( TAG, "prepareVideos : category=" + category + ", cleanedTitle=" + cleanedTitle );
             if( !mVideos.containsKey( category ) ) {
-                Log.i( TAG, "prepareVideos : added video to new category" );
+//                Log.i( TAG, "prepareVideos : added video to new category" );
 
                 List<Video> categoryVideos = new ArrayList<Video>();
                 categoryVideos.add( video );
@@ -73,7 +73,7 @@ public class VideoServiceHelper {
                 mCategories.put( category, category );
 
             } else {
-                Log.i( TAG, "prepareVideos : added video to existing category" );
+//                Log.i( TAG, "prepareVideos : added video to existing category" );
 
                 mVideos.get( category ).add( video );
 

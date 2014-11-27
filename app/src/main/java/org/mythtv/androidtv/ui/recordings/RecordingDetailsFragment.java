@@ -47,7 +47,7 @@ public class RecordingDetailsFragment extends DetailsFragment {
 
     private static final int NUM_COLS = 10;
 
-    private static final String PROGRAM = "Program";
+    private static final String PROGRAM = "Recording";
 
     private Program selectedProgram;
 
