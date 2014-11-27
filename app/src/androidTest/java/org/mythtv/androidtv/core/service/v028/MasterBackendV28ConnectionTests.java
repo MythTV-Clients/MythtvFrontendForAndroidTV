@@ -5,7 +5,7 @@ import junit.framework.TestCase;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mythtv.androidtv.core.service.DvrService;
-import org.mythtv.androidtv.core.service.v027.dvr.DvrServiceV27EventHandler;
+import org.mythtv.androidtv.core.service.v028.dvr.DvrServiceV28EventHandler;
 import org.mythtv.androidtv.events.dvr.AllProgramsEvent;
 import org.mythtv.androidtv.events.dvr.ProgramDetails;
 import org.mythtv.androidtv.events.dvr.RequestAllRecordedProgramsEvent;
@@ -32,7 +32,7 @@ public class MasterBackendV28ConnectionTests extends TestCase {
 
         MythTvApiContext mMythTvApiContext = MythTvApiContext.newBuilder().setHostName( hostname ).setPort( port ).setVersion( apiVersion ).build();
 
-        DvrService dvrService = new DvrServiceV27EventHandler( mMythTvApiContext );
+        DvrService dvrService = new DvrServiceV28EventHandler( mMythTvApiContext );
 
         AllProgramsEvent event = dvrService.getRecordedPrograms(new RequestAllRecordedProgramsEvent(false, 0, -1, null, null, null));
         assertNotNull( event );
